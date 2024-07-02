@@ -17,18 +17,18 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
  */
 public class GameScreenMultiplayer implements Screen {
 
-    private SpriteBatch batch;
-    private Snake snake1;
-    private Snake snake2;
-    private Food food1;
-    private Food food2;
-    private BitmapFont font;
-    private boolean isGameOver;
-    private boolean isPaused;
-    private boolean isResuming;
-    private float resumeTimer;
-    private String winnerText;
-    private Music gameMusic;
+    private SpriteBatch batch; // Batch usado para renderizar os elementos na tela
+    private Snake snake1; // Primeira cobra
+    private Snake snake2; // Segunda cobra
+    private Food food1; // Primeira comida
+    private Food food2; // Segunda comida
+    private BitmapFont font; // Fonte usada para exibir texto na tela
+    private boolean isGameOver; // Indica se o jogo acabou
+    private boolean isPaused; // Indica se o jogo está pausado
+    private boolean isResuming; // Indica se o jogo está retomando após uma pausa
+    private float resumeTimer; // Temporizador usado para retomar o jogo
+    private String winnerText; // Texto exibido quando o jogo termina, indicando o vencedor
+    private Music gameMusic; // Música de fundo do jogo
 
     /**
      * Construtor da tela de jogo multiplayer.
@@ -39,13 +39,16 @@ public class GameScreenMultiplayer implements Screen {
         this.batch = batch;
         Gdx.app.log("GameScreenMultiplayer", "Criando tela multiplayer");
 
+        // Inicializa as cobras e as comidas
         snake1 = new Snake(100, 100, Input.Keys.W, Input.Keys.D, Input.Keys.S, Input.Keys.A, false);
         snake2 = new Snake(300, 300, Input.Keys.UP, Input.Keys.RIGHT, Input.Keys.DOWN, Input.Keys.LEFT, true);
         food1 = new Food(200, 200);
         food2 = new Food(400, 400);
 
+        // Gera a fonte usada para exibir texto na tela
         generateFont();
 
+        // Inicializa variáveis de controle de estado do jogo
         isGameOver = false;
         isPaused = false;
         isResuming = false;
@@ -57,10 +60,14 @@ public class GameScreenMultiplayer implements Screen {
         gameMusic.setLooping(true); // Define para tocar em loop
         gameMusic.play(); // Inicia a reprodução da música
 
+        // Configura o input processor para lidar com entradas do jogador
         SnakeInputProcessor inputProcessor = new SnakeInputProcessor(snake1, snake2, this);
         Gdx.input.setInputProcessor(inputProcessor);
     }
 
+    /**
+     * Gera a fonte usada para exibir texto na tela.
+     */
     private void generateFont() {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("arial.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -69,27 +76,43 @@ public class GameScreenMultiplayer implements Screen {
         parameter.borderWidth = 2;
         parameter.borderColor = Color.BLACK;
         font = generator.generateFont(parameter);
-        generator.dispose();
+        generator.dispose(); // Libera o gerador de fontes
     }
 
+    /**
+     * Alterna o estado de pausa do jogo.
+     */
     public void togglePause() {
         if (isPaused) {
             isPaused = false;
             isResuming = true;
-            resumeTimer = 1;
+            resumeTimer = 1; // 1 segundo
         } else {
             isPaused = true;
         }
     }
 
+    /**
+     * Verifica se o jogo está pausado.
+     *
+     * @return true se o jogo estiver pausado, false caso contrário.
+     */
     public boolean isPaused() {
         return isPaused;
     }
 
+    /**
+     * Verifica se o jogo está retomando após uma pausa.
+     *
+     * @return true se o jogo estiver retomando, false caso contrário.
+     */
     public boolean isResuming() {
         return isResuming;
     }
 
+    /**
+     * Reinicia o jogo, redefinindo todas as variáveis e elementos do jogo.
+     */
     private void resetGame() {
         snake1 = new Snake(100, 100, Input.Keys.W, Input.Keys.D, Input.Keys.S, Input.Keys.A, false);
         snake2 = new Snake(300, 300, Input.Keys.UP, Input.Keys.RIGHT, Input.Keys.DOWN, Input.Keys.LEFT, true);
@@ -104,10 +127,14 @@ public class GameScreenMultiplayer implements Screen {
         Gdx.input.setInputProcessor(inputProcessor);
     }
 
+    /**
+     * Verifica as colisões entre as cobras e processa o resultado do jogo.
+     */
     private void checkCollisions() {
         Snake.BodyPart head1 = snake1.getHead();
         Snake.BodyPart head2 = snake2.getHead();
 
+        // Verifica colisão da cabeça da cobra 1 com o corpo da cobra 2
         for (int i = 1; i < snake2.getBody().size(); i++) {
             Snake.BodyPart part = snake2.getBody().get(i);
             if (head1.x == part.x && head1.y == part.y) {
@@ -117,6 +144,7 @@ public class GameScreenMultiplayer implements Screen {
             }
         }
 
+        // Verifica colisão da cabeça da cobra 2 com o corpo da cobra 1
         for (int i = 1; i < snake1.getBody().size(); i++) {
             Snake.BodyPart part = snake1.getBody().get(i);
             if (head2.x == part.x && head2.y == part.y) {
@@ -126,6 +154,7 @@ public class GameScreenMultiplayer implements Screen {
             }
         }
 
+        // Verifica colisão de cabeça com cabeça
         if (head1.x == head2.x && head1.y == head2.y) {
             if (snake1.getBody().size() > snake2.getBody().size()) {
                 isGameOver = true;
@@ -157,6 +186,7 @@ public class GameScreenMultiplayer implements Screen {
         food1.render(batch);
         food2.render(batch);
 
+        // Renderiza a pontuação da cobra amarela
         String point = Integer.toString(snake2.getBody().size());
         GlyphLayout layout = new GlyphLayout(font, point);
         float x = (Gdx.graphics.getWidth() - layout.width);
@@ -164,6 +194,7 @@ public class GameScreenMultiplayer implements Screen {
         font.setColor(Color.YELLOW);
         font.draw(batch, "Cobra amarela: " + point, x - 250, y);
 
+        // Renderiza a pontuação da cobra vermelha
         point = Integer.toString(snake1.getBody().size());
         layout = new GlyphLayout(font, point);
         x = (Gdx.graphics.getWidth() - layout.width) / 192;
@@ -243,6 +274,10 @@ public class GameScreenMultiplayer implements Screen {
         batch.end();
     }
 
+    /**
+     * Processa as entradas do jogador na tela de game over.
+     * Permite reiniciar o jogo ou voltar ao menu principal.
+     */
     private void handleGameOverInput() {
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             resetGame();
